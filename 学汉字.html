@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>文字学习游戏（结合单词）</title>
+    <style>
+        body {
+            font-family: Arial, "微软雅黑";
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f0f8ff;
+            /* background-image: url(./bg.png);
+            background-repeat: no-repeat;
+            background-size: cover; */
+        }
+
+        #prompt {
+            margin: 60px 20px 20px 20px;
+            color: #2c3e50;
+            font-size: 100px;
+            font-weight: bold;
+            font-size: 150px;
+            font-weight: bold;
+            background: linear-gradient(to right, #f54d24, #f3a66b); /* 渐变方向和颜色 */
+            -webkit-background-clip: text; /* Chrome 和 Safari */
+            background-clip: text; /* 标准属性 */
+            color: transparent; /* 隐藏默认字体颜色 */
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 90px;
+            /* max-width: 600px; */
+        }
+
+        .word-box {
+            width: 200px;
+            height: 200px;
+            /* background: #ffffff; */
+            background-image: url(./images/miBg.png);
+            background-size: cover;
+            border: 3px solid #3498db;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 120px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .word-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .error {
+            background: #f34848 !important;
+            border-color: #f62525;
+        }
+        .correct {
+            background: #2ecc71 !important;
+            border-color: #27ae60;
+        }
+
+        #image-prompt {
+            width: 600px;
+            height: 600px;
+            object-fit: contain;
+            margin: 50px 20px 20px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="prompt"></div>
+    <img id="image-prompt" src="" alt="图片提示">
+    <div id="grid"></div>
+
+    <script>
+        const wordData = [
+    { "en": "dad", "zh": "爸", "img": "images/dad.png" },
+    { "en": "mom", "zh": "妈", "img": "images/mom.png" },
+    // { "en": "me", "zh": "我", "img": "images/me.png" },
+    // { "en": "grandfather", "zh": "爷", "img": "images/grandfather.png" },
+    { "en": "grandmother", "zh": "奶", "img": "images/grandmother.png" },
+    // { "en": "big", "zh": "大", "img": "images/big.png" },
+    { "en": "rice", "zh": "米", "img": "images/rice.png" },
+    { "en": "earth", "zh": "土", "img": "images/earth.png" },
+    { "en": "sky", "zh": "天", "img": "images/sky.png" },
+    { "en": "ground", "zh": "地", "img": "images/ground.png" },
+    { "en": "horse", "zh": "马", "img": "images/horse.png" },
+    { "en": "house", "zh": "房", "img": "images/house.png" },    
+    { "en": "flower", "zh": "花", "img": "images/flower.png" },
+    { "en": "brother", "zh": "哥", "img": "images/brother.png" },
+    { "en": "younger_brother", "zh": "弟", "img": "images/younger_brother.png" },
+    { "en": "sister", "zh": "姐", "img": "images/sister.png" },
+    { "en": "younger_sister", "zh": "妹", "img": "images/younger_sister.png" },
+    // { "en": "individual", "zh": "个", "img": "images/individual.png" },
+    { "en": "painting", "zh": "画", "img": "images/painting.png" },
+    { "en": "up", "zh": "上", "img": "images/up.png" },
+    { "en": "down", "zh": "下", "img": "images/down.png" },
+    { "en": "left", "zh": "左", "img": "images/left.png" },
+    { "en": "right", "zh": "右", "img": "images/right.png" },
+    ];
+
+        let currentWord;
+
+        function initGame() {
+            // 随机选择目标单词
+            currentWord = wordData[Math.floor(Math.random() * wordData.length)];
+            
+            // 生成候选单词（包含正确答案）
+            const candidates = getRandomCandidates(currentWord);
+            
+            // 更新界面
+            document.getElementById('prompt').textContent = currentWord.en;
+            document.getElementById('image-prompt').src = currentWord.img;
+            
+            // 创建九宫格
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            candidates.forEach(word => {
+                const box = document.createElement('div');
+                box.className = 'word-box';
+                box.textContent = word.zh;
+                box.onclick = () => checkAnswer(word.zh);
+                grid.appendChild(box);
+            });
+        }
+
+        function getRandomCandidates(correctWord) {
+            const others = wordData.filter(w => w !== correctWord);
+            const shuffled = others.sort(() => 0.5 - Math.random()).slice(0, 8);
+            return [...shuffled, correctWord].sort(() => 0.5 - Math.random());
+        }
+
+        function checkAnswer(selectedWord) {
+            const curEle = event.target; // 新增点击元素捕获
+            const boxes = document.querySelectorAll('.word-box');
+            boxes.forEach(box => {
+                box.classList.remove('error');
+                if (selectedWord === currentWord.zh) {
+                    curEle.classList.add('correct');
+                } else {
+                    curEle.classList.add('error');
+                }
+                // box.style.pointerEvents = 'none'; // 禁用后续点击
+            });
+
+            // 1秒后刷新题目
+            if (selectedWord === currentWord.zh) {
+                setTimeout(initGame, 1000);
+            }
+        }
+
+        // 开始游戏
+        initGame();
+    </script>
+</body>
+</html>
